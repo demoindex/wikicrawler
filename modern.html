@@ -1,13 +1,12 @@
 
 <!DOCTYPE html>
+
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8"/>
 <title>wikicrawler</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
-
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&amp;display=swap" rel="stylesheet"/>
 <style>
 :root{
   --tileSize:clamp(90px,25vw,150px);
@@ -130,26 +129,20 @@ button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
 
 </style>
 </head>
-
 <body>
-
 <div class="ui">
 <div class="title">wikicrawler</div>
-
 <button class="ratioBtn active" data-ratio="square">1:1</button>
 <button class="ratioBtn" data-ratio="wide">4:1</button>
 <button class="ratioBtn" data-ratio="ultrawide">8:1</button>
 <button class="ratioBtn" data-ratio="widescreen">16:9</button>
 <button class="ratioBtn" data-ratio="tall">1:4</button>
 <button class="ratioBtn" data-ratio="avatar">CIRCLE</button>
-
 <button onclick="toggleFullscreen()">FULL</button>
 <button id="startBtn" onclick="start()">START</button>
-<button id="stopBtn" class="stopped" onclick="stop()">STOP</button>
+<button class="stopped" id="stopBtn" onclick="stop()">STOP</button>
 </div>
-
-<div id="grid" class="grid"></div>
-
+<div class="grid" id="grid"></div>
 <script>
 const grid=document.getElementById("grid");
 let source=null;
@@ -315,6 +308,65 @@ async function addTile(edit){
 
 ensurePlaceholders();
 start();
+
+
+// ===== KEYBOARD MODES =====
+let downloadMode = false;
+
+// SPACE = start/stop
+// F = fullscreen
+// R = cycle ratios
+// D = toggle download mode
+document.addEventListener("keydown", (e) => {
+  if (["INPUT","TEXTAREA"].includes(e.target.tagName)) return;
+
+  // SPACE
+  if (e.code === "Space") {
+    e.preventDefault();
+    if (source) stop(); else start();
+  }
+
+  // F = fullscreen
+  if (e.code === "KeyF") {
+    toggleFullscreen();
+  }
+
+  // R = cycle ratio
+  if (e.code === "KeyR") {
+    const btns = [...document.querySelectorAll(".ratioBtn")];
+    let idx = btns.findIndex(b=>b.classList.contains("active"));
+    idx = (idx+1) % btns.length;
+    btns[idx].click();
+  }
+
+  // D = download mode toggle
+  if (e.code === "KeyD") {
+    downloadMode = !downloadMode;
+    console.log("Download mode:", downloadMode ? "ON":"OFF");
+  }
+});
+
+// patch tile click to respect downloadMode
+const origAddTile = addTile;
+addTile = async function(edit){
+  const beforeCount = grid.children.length;
+  await origAddTile(edit);
+
+  const tile = grid.firstChild;
+  if (!tile || !tile.classList.contains("tile")) return;
+
+  const oldClick = tile.onclick;
+  tile.onclick = (e)=>{
+    if (downloadMode){
+      e.preventDefault();
+      const title = tile.querySelector(".info")?.innerText || "image";
+      const bg = tile.style.backgroundImage.slice(5,-2);
+      cropDownload(bg,title);
+    } else {
+      oldClick(e);
+    }
+  };
+};
 </script>
 </body>
 </html>
