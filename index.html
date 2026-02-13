@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,8 +22,6 @@ html,body{
   overflow:hidden;
 }
 
-/* UI */
-
 .ui{
   position:fixed;
   top:0; left:0; right:0;
@@ -41,8 +40,6 @@ html,body{
   opacity:.9;
 }
 
-/* BUTTONS */
-
 button{
   background:linear-gradient(#2a2a2a,#151515);
   color:#ccc;
@@ -57,29 +54,13 @@ button{
   transition:.15s;
 }
 
-button:hover{
-  background:linear-gradient(#3a3a3a,#1c1c1c);
-}
-
-button.active{
-  background:linear-gradient(#eaeaea,#bdbdbd);
-  color:#000;
-}
-
-button.running{
-  background:linear-gradient(#1e3a1e,#0f220f);
-  color:#6cff6c;
-}
-
-button.stopped{
-  background:linear-gradient(#3a1e1e,#220f0f);
-  color:#ff6c6c;
-}
+button:hover{ background:linear-gradient(#3a3a3a,#1c1c1c); }
+button.active{ background:linear-gradient(#eaeaea,#bdbdbd); color:#000; }
+button.running{ background:linear-gradient(#1e3a1e,#0f220f); color:#6cff6c; }
+button.stopped{ background:linear-gradient(#3a1e1e,#220f0f); color:#ff6c6c; }
 
 :fullscreen .ui{ display:none; }
 :fullscreen .grid{ top:0; }
-
-/* GRID */
 
 .grid{
   position:fixed;
@@ -93,9 +74,9 @@ button.stopped{
 
 .grid.wide{ --ratio:4/1; }
 .grid.ultrawide{ --ratio:8/1; }
+.grid.widescreen{ --ratio:16/9; }
 .grid.tall{ --ratio:1/4; }
 .grid.avatar{ --ratio:1/1; }
-
 .grid.avatar .tile{ border-radius:50%; }
 
 .tile{
@@ -110,10 +91,7 @@ button.stopped{
 }
 
 .tile.show{opacity:1;}
-
-.placeholder{
-  background:#1a1a1a !important;
-}
+.placeholder{ background:#1a1a1a !important; }
 
 .info{
   position:absolute;
@@ -138,6 +116,7 @@ button.stopped{
 <button class="ratioBtn active" data-ratio="square">1:1</button>
 <button class="ratioBtn" data-ratio="wide">4:1</button>
 <button class="ratioBtn" data-ratio="ultrawide">8:1</button>
+<button class="ratioBtn" data-ratio="widescreen">16:9</button>
 <button class="ratioBtn" data-ratio="tall">1:4</button>
 <button class="ratioBtn" data-ratio="avatar">◯</button>
 
@@ -149,15 +128,12 @@ button.stopped{
 <div id="grid" class="grid"></div>
 
 <script>
-
 const grid=document.getElementById("grid");
 let source=null;
 let currentMode="square";
 
 const startBtn=document.getElementById("startBtn");
 const stopBtn=document.getElementById("stopBtn");
-
-/* FULLSCREEN */
 
 function toggleFullscreen(){
  if(!document.fullscreenElement){
@@ -167,20 +143,15 @@ function toggleFullscreen(){
  }
 }
 
-/* RATIO SWITCH */
-
 document.querySelectorAll(".ratioBtn").forEach(btn=>{
  btn.onclick=()=>{
-  document.querySelectorAll(".ratioBtn")
-    .forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".ratioBtn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   currentMode=btn.dataset.ratio;
   grid.className="grid "+(currentMode==="square"?"":currentMode);
   ensurePlaceholders();
  };
 });
-
-/* RATIO HELPER */
 
 function getRatio(){
  if(currentMode==="avatar") return 1;
@@ -189,22 +160,15 @@ function getRatio(){
  return w/h;
 }
 
-function clean(n){
- return n.replace(/[\\/:*?"<>|]/g,"_");
-}
-
-/* DOWNLOAD */
+function clean(n){ return n.replace(/[\\/:*?"<>|]/g,"_"); }
 
 function cropDownload(url,title){
-
  const img=new Image();
  img.crossOrigin="anonymous";
  img.src=url;
 
  img.onload=()=>{
-
   const r=getRatio();
-
   let sw=img.width, sh=img.height;
   let cw=sw, ch=cw/r;
   if(ch>sh){ ch=sh; cw=ch*r; }
@@ -217,9 +181,7 @@ function cropDownload(url,title){
   let outH=size/r;
 
   const c=document.createElement("canvas");
-  c.width=outW;
-  c.height=outH;
-
+  c.width=outW; c.height=outH;
   const ctx=c.getContext("2d");
 
   if(currentMode==="avatar"){
@@ -237,20 +199,13 @@ function cropDownload(url,title){
  };
 }
 
-/* STREAM */
-
 function start(){
  if(source) return;
-
  source=new EventSource("https://stream.wikimedia.org/v2/stream/recentchange");
-
  source.onmessage=e=>{
   const d=JSON.parse(e.data);
-  if(d.type==="edit" && d.namespace===0){
-   addTile(d);
-  }
+  if(d.type==="edit" && d.namespace===0) addTile(d);
  };
-
  startBtn.classList.add("running");
  stopBtn.classList.remove("stopped");
 }
@@ -261,19 +216,14 @@ function stop(){
  stopBtn.classList.add("stopped");
 }
 
-/* PLACEHOLDERS */
-
 function ensurePlaceholders(){
-
  const tileW=150;
  const ratio=getRatio();
  const tileH=tileW/ratio;
 
  const gridHeight = grid.clientHeight || (window.innerHeight-44);
-
  const cols=Math.ceil(window.innerWidth/tileW);
  const rows=Math.ceil(gridHeight/tileH);
-
  const needed=cols*rows;
 
  const real=[...grid.children].filter(t=>!t.classList.contains("placeholder"));
@@ -299,20 +249,13 @@ function ensurePlaceholders(){
 
 window.addEventListener("resize", ensurePlaceholders);
 
-/* ADD TILE */
-
 async function addTile(edit){
-
  const title=edit.title;
  const lang=edit.wiki.replace("wiki","");
  const url=`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`;
 
  try{
-
-  const r=await fetch(
-   `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
-  );
-
+  const r=await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
   const d=await r.json();
   if(!d.thumbnail) return;
 
@@ -323,7 +266,6 @@ async function addTile(edit){
   img.src=thumb;
 
   img.onload=()=>{
-
    const tile=document.createElement("div");
    tile.className="tile";
    tile.style.backgroundImage=`url(${thumb})`;
@@ -338,13 +280,11 @@ async function addTile(edit){
    };
 
    tile.innerHTML=`<div class="info">${title}</div>`;
-
    grid.prepend(tile);
    requestAnimationFrame(()=>tile.classList.add("show"));
 
    const ph=[...grid.children].find(t=>t.classList.contains("placeholder"));
    if(ph) ph.remove();
-
    ensurePlaceholders();
   };
 
@@ -353,7 +293,6 @@ async function addTile(edit){
 
 ensurePlaceholders();
 start();
-
 </script>
 </body>
 </html>
