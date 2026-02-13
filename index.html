@@ -41,7 +41,7 @@ html,body{
   opacity:.9;
 }
 
-/* HAPTIC BUTTONS */
+/* BUTTONS */
 
 button{
   background:linear-gradient(#2a2a2a,#151515);
@@ -95,13 +95,8 @@ button.stopped{
 .grid.ultrawide{ --ratio:8/1; }
 .grid.tall{ --ratio:1/4; }
 .grid.avatar{ --ratio:1/1; }
-.grid.half{ --ratio:1/1; }
 
 .grid.avatar .tile{ border-radius:50%; }
-.grid.half .tile{
-  border-radius:150px 150px 0 0;
-  overflow:hidden;
-}
 
 .tile{
   aspect-ratio:var(--ratio);
@@ -145,7 +140,6 @@ button.stopped{
 <button class="ratioBtn" data-ratio="ultrawide">8:1</button>
 <button class="ratioBtn" data-ratio="tall">1:4</button>
 <button class="ratioBtn" data-ratio="avatar">◯</button>
-<button class="ratioBtn" data-ratio="half">◐</button>
 
 <button onclick="toggleFullscreen()">FULL</button>
 <button id="startBtn" onclick="start()">START</button>
@@ -189,7 +183,7 @@ document.querySelectorAll(".ratioBtn").forEach(btn=>{
 /* RATIO HELPER */
 
 function getRatio(){
- if(currentMode==="avatar"||currentMode==="half") return 1;
+ if(currentMode==="avatar") return 1;
  const val=getComputedStyle(grid).getPropertyValue("--ratio").trim();
  const [w,h]=val.split("/").map(Number);
  return w/h;
@@ -199,7 +193,7 @@ function clean(n){
  return n.replace(/[\\/:*?"<>|]/g,"_");
 }
 
-/* DOWNLOAD (ALT+CLICK) */
+/* DOWNLOAD */
 
 function cropDownload(url,title){
 
@@ -221,9 +215,6 @@ function cropDownload(url,title){
   const size=1024;
   let outW=size;
   let outH=size/r;
-  if(currentMode==="avatar"||currentMode==="half"){
-    outW=size; outH=size;
-  }
 
   const c=document.createElement("canvas");
   c.width=outW;
@@ -234,12 +225,6 @@ function cropDownload(url,title){
   if(currentMode==="avatar"){
    ctx.beginPath();
    ctx.arc(outW/2,outH/2,outW/2,0,Math.PI*2);
-   ctx.clip();
-  }
-
-  if(currentMode==="half"){
-   ctx.beginPath();
-   ctx.arc(outW/2,outH, outW/2, Math.PI, 2*Math.PI);
    ctx.clip();
   }
 
