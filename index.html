@@ -23,8 +23,6 @@ html,body{
   overflow:hidden;
 }
 
-/* UI */
-
 .ui{
   position:fixed;
   top:0; left:0; right:0;
@@ -43,6 +41,8 @@ html,body{
   opacity:.9;
 }
 
+/* BUTTONS */
+
 button{
   background:linear-gradient(#2a2a2a,#151515);
   color:#ccc;
@@ -55,6 +55,15 @@ button{
     inset 0 1px 0 rgba(255,255,255,.08),
     0 1px 2px rgba(0,0,0,.6);
   transition:.15s;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.ratioBtn{
+  width:44px;          /* <-- forced equal width */
+  padding:6px 0;       /* symmetric */
+  text-align:center;
 }
 
 button:hover{background:linear-gradient(#3a3a3a,#1c1c1c);}
@@ -65,6 +74,7 @@ button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
 @media (max-width:600px){
   .ui{flex-wrap:wrap;height:auto;padding:6px;}
   button{padding:10px;font-size:14px;}
+  .ratioBtn{width:52px;}
   .grid{top:72px;}
 }
 
@@ -131,7 +141,7 @@ button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
 <button class="ratioBtn" data-ratio="ultrawide">8:1</button>
 <button class="ratioBtn" data-ratio="widescreen">16:9</button>
 <button class="ratioBtn" data-ratio="tall">1:4</button>
-<button class="ratioBtn" data-ratio="avatar">◯</button>
+<button class="ratioBtn" data-ratio="avatar">CIRCLE</button>
 
 <button onclick="toggleFullscreen()">FULL</button>
 <button id="startBtn" onclick="start()">START</button>
