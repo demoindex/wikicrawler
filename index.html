@@ -4,12 +4,13 @@
 <head>
 <meta charset="UTF-8">
 <title>wikicrawler</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --tileSize:150px;
+  --tileSize:clamp(90px,25vw,150px);
   --ratio:1/1;
 }
 
@@ -21,6 +22,8 @@ html,body{
   height:100%;
   overflow:hidden;
 }
+
+/* UI */
 
 .ui{
   position:fixed;
@@ -54,30 +57,38 @@ button{
   transition:.15s;
 }
 
-button:hover{ background:linear-gradient(#3a3a3a,#1c1c1c); }
-button.active{ background:linear-gradient(#eaeaea,#bdbdbd); color:#000; }
-button.running{ background:linear-gradient(#1e3a1e,#0f220f); color:#6cff6c; }
-button.stopped{ background:linear-gradient(#3a1e1e,#220f0f); color:#ff6c6c; }
+button:hover{background:linear-gradient(#3a3a3a,#1c1c1c);}
+button.active{background:linear-gradient(#eaeaea,#bdbdbd);color:#000;}
+button.running{background:linear-gradient(#1e3a1e,#0f220f);color:#6cff6c;}
+button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
 
-:fullscreen .ui{ display:none; }
-:fullscreen .grid{ top:0; }
+@media (max-width:600px){
+  .ui{flex-wrap:wrap;height:auto;padding:6px;}
+  button{padding:10px;font-size:14px;}
+  .grid{top:72px;}
+}
+
+:fullscreen .ui{display:none;}
+:fullscreen .grid{top:0;}
+
+/* GRID */
 
 .grid{
   position:fixed;
   top:44px;
-  left:0; right:0; bottom:0;
+  left:0;right:0;bottom:0;
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(var(--tileSize),1fr));
   gap:1px;
   overflow:hidden;
 }
 
-.grid.wide{ --ratio:4/1; }
-.grid.ultrawide{ --ratio:8/1; }
-.grid.widescreen{ --ratio:16/9; }
-.grid.tall{ --ratio:1/4; }
-.grid.avatar{ --ratio:1/1; }
-.grid.avatar .tile{ border-radius:50%; }
+.grid.wide{--ratio:4/1;}
+.grid.ultrawide{--ratio:8/1;}
+.grid.widescreen{--ratio:16/9;}
+.grid.tall{--ratio:1/4;}
+.grid.avatar{--ratio:1/1;}
+.grid.avatar .tile{border-radius:50%;}
 
 .tile{
   aspect-ratio:var(--ratio);
@@ -91,7 +102,7 @@ button.stopped{ background:linear-gradient(#3a1e1e,#220f0f); color:#ff6c6c; }
 }
 
 .tile.show{opacity:1;}
-.placeholder{ background:#1a1a1a !important; }
+.placeholder{background:#1a1a1a!important;}
 
 .info{
   position:absolute;
@@ -105,6 +116,8 @@ button.stopped{ background:linear-gradient(#3a1e1e,#220f0f); color:#ff6c6c; }
 }
 
 .tile:hover .info{opacity:1;}
+@media (hover:none){.info{opacity:.6;}}
+
 </style>
 </head>
 
@@ -160,7 +173,7 @@ function getRatio(){
  return w/h;
 }
 
-function clean(n){ return n.replace(/[\\/:*?"<>|]/g,"_"); }
+function clean(n){return n.replace(/[\\/:*?"<>|]/g,"_");}
 
 function cropDownload(url,title){
  const img=new Image();
@@ -169,10 +182,9 @@ function cropDownload(url,title){
 
  img.onload=()=>{
   const r=getRatio();
-  let sw=img.width, sh=img.height;
-  let cw=sw, ch=cw/r;
-  if(ch>sh){ ch=sh; cw=ch*r; }
-
+  let sw=img.width,sh=img.height;
+  let cw=sw,ch=cw/r;
+  if(ch>sh){ch=sh;cw=ch*r;}
   const sx=(sw-cw)/2;
   const sy=(sh-ch)/2;
 
@@ -181,7 +193,7 @@ function cropDownload(url,title){
   let outH=size/r;
 
   const c=document.createElement("canvas");
-  c.width=outW; c.height=outH;
+  c.width=outW;c.height=outH;
   const ctx=c.getContext("2d");
 
   if(currentMode==="avatar"){
@@ -211,7 +223,7 @@ function start(){
 }
 
 function stop(){
- if(source){ source.close(); source=null; }
+ if(source){source.close();source=null;}
  startBtn.classList.remove("running");
  stopBtn.classList.add("stopped");
 }
@@ -220,8 +232,8 @@ function ensurePlaceholders(){
  const tileW=150;
  const ratio=getRatio();
  const tileH=tileW/ratio;
+ const gridHeight=grid.clientHeight||(window.innerHeight-44);
 
- const gridHeight = grid.clientHeight || (window.innerHeight-44);
  const cols=Math.ceil(window.innerWidth/tileW);
  const rows=Math.ceil(gridHeight/tileH);
  const needed=cols*rows;
@@ -231,7 +243,7 @@ function ensurePlaceholders(){
 
  const totalNeeded=Math.max(0,needed-real.length);
 
- if(placeholders.length < totalNeeded){
+ if(placeholders.length<totalNeeded){
   for(let i=0;i<totalNeeded-placeholders.length;i++){
    const t=document.createElement("div");
    t.className="tile show placeholder";
@@ -239,15 +251,15 @@ function ensurePlaceholders(){
   }
  }
 
- if(placeholders.length > totalNeeded){
+ if(placeholders.length>totalNeeded){
   let remove=placeholders.length-totalNeeded;
   placeholders.reverse().forEach(p=>{
-   if(remove>0){ p.remove(); remove--; }
+   if(remove>0){p.remove();remove--;}
   });
  }
 }
 
-window.addEventListener("resize", ensurePlaceholders);
+window.addEventListener("resize",ensurePlaceholders);
 
 async function addTile(edit){
  const title=edit.title;
@@ -260,7 +272,7 @@ async function addTile(edit){
   if(!d.thumbnail) return;
 
   const thumb=d.thumbnail.source;
-  const full=d.originalimage?.source || thumb;
+  const full=d.originalimage?.source||thumb;
 
   const img=new Image();
   img.src=thumb;
