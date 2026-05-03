@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta charset="utf-8"/>
-<title>recentchange</title>
+<title>wikitiki</title>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -24,7 +24,7 @@ html,body{
 }
 
 /* =========================================================
-   MAXIMALLY REDUCED EARLY-WEB / CRAIGSLIST HEADER
+   HEADER
    ========================================================= */
 
 .ui{
@@ -227,7 +227,7 @@ button.stopped{
 <div class="ui">
   <div class="brand">
     <span class="statusLight" aria-hidden="true"></span>
-    <div class="titleWrap"><div class="title">recentchange</div><div class="subtitle">wikipedia image stream</div></div>
+    <div class="titleWrap"><div class="title">wikitiki</div><div class="subtitle">wikipedia image stream</div></div>
   </div>
 
   <div class="controlGroup ratioGroup" aria-label="Image format">
@@ -320,7 +320,7 @@ function cropDownload(url,title){
 
 function start(){
  if(source) return;
- source=new EventSource("https://stream.wikimedia.org/v2/stream/recentchange");
+ source=new EventSource("https://stream.wikimedia.org/v2/stream/wikitiki");
  source.onmessage=e=>{
   const d=JSON.parse(e.data);
   if(d.type==="edit" && d.namespace===0) addTile(d);
