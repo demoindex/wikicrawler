@@ -11,70 +11,169 @@
 :root{
   --tileSize:clamp(90px,25vw,150px);
   --ratio:1/1;
+  --chromeH:31px;
 }
 
 html,body{
   margin:0;
   background:#000;
   color:#fff;
-  font-family:Helvetica,Arial,sans-serif;
+  font-family:Arial,Helvetica,sans-serif;
   height:100%;
   overflow:hidden;
 }
 
+/* =========================================================
+   MAXIMALLY REDUCED EARLY-WEB / CRAIGSLIST HEADER
+   ========================================================= */
+
 .ui{
   position:fixed;
   top:0; left:0; right:0;
-  height:44px;
-  background:#0a0a0a;
-  display:flex;
-  gap:8px;
-  align-items:center;
-  padding:0 12px;
+  height:var(--chromeH);
+  box-sizing:border-box;
   z-index:10;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 8px 5px;
+  overflow:hidden;
+  white-space:nowrap;
+  background:#eee;
+  color:#111;
+  border-bottom:1px solid #999;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:12px;
+  line-height:1;
 }
 
+.brand{
+  display:inline-flex;
+  align-items:baseline;
+  gap:6px;
+  flex:0 0 auto;
+}
+
+.titleWrap{display:inline;}
 .title{
-  font-family:"Special Elite";
-  margin-right:12px;
-  opacity:.9;
+  display:inline;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:13px;
+  font-weight:bold;
+  color:#0000ee;
+  text-decoration:underline;
 }
 
-/* BUTTONS */
-
-button{
-  background:linear-gradient(#2a2a2a,#151515);
-  color:#ccc;
-  border:1px solid #000;
-  padding:6px 10px;
+.subtitle{
+  display:inline;
+  margin-left:6px;
   font-size:11px;
-  cursor:pointer;
-  border-radius:4px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 1px 2px rgba(0,0,0,.6);
-  transition:.15s;
+  color:#555;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+.statusLight{
+  width:7px;
+  height:7px;
+  display:inline-block;
+  border-radius:50%;
+  background:#169b28;
+  border:1px solid #0b5c16;
+  transform:translateY(-1px);
+}
+
+body.is-stopped .statusLight{
+  background:#a00;
+  border-color:#600;
+}
+
+.controlGroup{
   display:inline-flex;
   align-items:center;
-  justify-content:center;
+  gap:0;
+  height:auto;
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  flex:0 0 auto;
 }
 
-.ratioBtn{
-  width:44px;          /* <-- forced equal width */
-  padding:6px 0;       /* symmetric */
-  text-align:center;
+.controlGroup:before{
+  content:"|";
+  color:#777;
+  margin:0 7px 0 1px;
 }
 
-button:hover{background:linear-gradient(#3a3a3a,#1c1c1c);}
-button.active{background:linear-gradient(#eaeaea,#bdbdbd);color:#000;}
-button.running{background:linear-gradient(#1e3a1e,#0f220f);color:#6cff6c;}
-button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
+.controlGroup.mainActions{
+  margin-left:auto;
+}
 
-@media (max-width:600px){
-  .ui{flex-wrap:wrap;height:auto;padding:6px;}
-  button{padding:10px;font-size:14px;}
-  .ratioBtn{width:52px;}
-  .grid{top:72px;}
+button{
+  appearance:none;
+  -webkit-appearance:none;
+  border:0;
+  background:transparent;
+  padding:0 3px;
+  margin:0;
+  height:auto;
+  min-width:0;
+  display:inline;
+  color:#0000ee;
+  font:inherit;
+  font-size:12px;
+  text-decoration:underline;
+  cursor:pointer;
+  border-radius:0;
+  box-shadow:none;
+  text-shadow:none;
+  text-transform:none;
+  letter-spacing:0;
+}
+
+button:hover{background:#ddd;}
+button:active{color:#551a8b;}
+button + button:before{
+  content:"/";
+  color:#777;
+  display:inline-block;
+  margin:0 5px 0 2px;
+  text-decoration:none;
+}
+
+button.active,
+button.running,
+button.modeOn{
+  color:#000;
+  font-weight:bold;
+  text-decoration:none;
+  cursor:default;
+}
+
+button.stopped{
+  color:#777;
+  text-decoration:none;
+}
+
+.keyHint{
+  display:none;
+}
+
+@media (max-width:620px){
+  :root{--chromeH:55px;}
+  .ui{
+    height:var(--chromeH);
+    flex-wrap:wrap;
+    align-content:flex-start;
+    gap:5px;
+    padding:6px 7px;
+    line-height:1.2;
+  }
+  .controlGroup.mainActions{margin-left:0;}
+  .brand{width:100%;}
+  .subtitle{font-size:10px;}
 }
 
 :fullscreen .ui{display:none;}
@@ -84,7 +183,7 @@ button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
 
 .grid{
   position:fixed;
-  top:44px;
+  top:var(--chromeH);
   left:0;right:0;bottom:0;
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(var(--tileSize),1fr));
@@ -92,10 +191,6 @@ button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
   overflow:hidden;
 }
 
-.grid.wide{--ratio:4/1;}
-.grid.ultrawide{--ratio:8/1;}
-.grid.widescreen{--ratio:16/9;}
-.grid.tall{--ratio:1/4;}
 .grid.avatar{--ratio:1/1;}
 .grid.avatar .tile{border-radius:50%;}
 
@@ -126,21 +221,29 @@ button.stopped{background:linear-gradient(#3a1e1e,#220f0f);color:#ff6c6c;}
 
 .tile:hover .info{opacity:1;}
 @media (hover:none){.info{opacity:.6;}}
-
 </style>
 </head>
 <body>
 <div class="ui">
-<div class="title">recentchange</div>
-<button class="ratioBtn active" data-ratio="square">1:1</button>
-<button class="ratioBtn" data-ratio="wide">4:1</button>
-<button class="ratioBtn" data-ratio="ultrawide">8:1</button>
-<button class="ratioBtn" data-ratio="widescreen">16:9</button>
-<button class="ratioBtn" data-ratio="tall">1:4</button>
-<button class="ratioBtn" data-ratio="avatar">CIRCLE</button>
-<button onclick="toggleFullscreen()">FULL</button>
-<button id="startBtn" onclick="start()">START</button>
-<button class="stopped" id="stopBtn" onclick="stop()">STOP</button>
+  <div class="brand">
+    <span class="statusLight" aria-hidden="true"></span>
+    <div class="titleWrap"><div class="title">recentchange</div><div class="subtitle">wikipedia image stream</div></div>
+  </div>
+
+  <div class="controlGroup ratioGroup" aria-label="Image format">
+    <button class="ratioBtn active" data-ratio="square">grid</button>
+    <button class="ratioBtn" data-ratio="avatar">circle</button>
+  </div>
+
+  <div class="controlGroup utilityGroup" aria-label="View tools">
+    <button id="downloadBtn" onclick="toggleDownloadMode()">save</button>
+    <button onclick="toggleFullscreen()">full</button>
+  </div>
+
+  <div class="controlGroup mainActions" aria-label="Stream controls">
+    <button id="startBtn" onclick="start()">start</button>
+    <button class="stopped" id="stopBtn" onclick="stop()">stop</button>
+  </div>
 </div>
 <div class="grid" id="grid"></div>
 <script>
@@ -150,6 +253,7 @@ let currentMode="square";
 
 const startBtn=document.getElementById("startBtn");
 const stopBtn=document.getElementById("stopBtn");
+const downloadBtn=document.getElementById("downloadBtn");
 
 function toggleFullscreen(){
  if(!document.fullscreenElement){
@@ -221,12 +325,14 @@ function start(){
   const d=JSON.parse(e.data);
   if(d.type==="edit" && d.namespace===0) addTile(d);
  };
+ document.body.classList.remove("is-stopped");
  startBtn.classList.add("running");
  stopBtn.classList.remove("stopped");
 }
 
 function stop(){
  if(source){source.close();source=null;}
+ document.body.classList.add("is-stopped");
  startBtn.classList.remove("running");
  stopBtn.classList.add("stopped");
 }
@@ -235,7 +341,7 @@ function ensurePlaceholders(){
  const tileW=150;
  const ratio=getRatio();
  const tileH=tileW/ratio;
- const gridHeight=grid.clientHeight||(window.innerHeight-44);
+ const gridHeight=grid.clientHeight||(window.innerHeight-parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--chromeH")) || 58);
 
  const cols=Math.ceil(window.innerWidth/tileW);
  const rows=Math.ceil(gridHeight/tileH);
@@ -312,10 +418,14 @@ start();
 
 // ===== KEYBOARD MODES =====
 let downloadMode = false;
+function toggleDownloadMode(){
+  downloadMode = !downloadMode;
+  if(downloadBtn) downloadBtn.classList.toggle("modeOn", downloadMode);
+}
 
 // SPACE = start/stop
 // F = fullscreen
-// R = cycle ratios
+// R = cycle image formats
 // D = toggle download mode
 document.addEventListener("keydown", (e) => {
   if (["INPUT","TEXTAREA"].includes(e.target.tagName)) return;
@@ -341,8 +451,7 @@ document.addEventListener("keydown", (e) => {
 
   // D = download mode toggle
   if (e.code === "KeyD") {
-    downloadMode = !downloadMode;
-    console.log("Download mode:", downloadMode ? "ON":"OFF");
+    toggleDownloadMode();
   }
 });
 
