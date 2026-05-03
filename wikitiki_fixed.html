@@ -1,0 +1,481 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>wikitiki</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&amp;display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --tileSize:clamp(90px,25vw,150px);
+  --ratio:1/1;
+  --chromeH:31px;
+}
+
+html,body{
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+  height:100%;
+  overflow:hidden;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.ui{
+  position:fixed;
+  top:0; left:0; right:0;
+  height:var(--chromeH);
+  box-sizing:border-box;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 8px 5px;
+  overflow:hidden;
+  white-space:nowrap;
+  background:#eee;
+  color:#111;
+  border-bottom:1px solid #999;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:12px;
+  line-height:1;
+}
+
+.brand{
+  display:inline-flex;
+  align-items:baseline;
+  gap:6px;
+  flex:0 0 auto;
+}
+
+.titleWrap{display:inline;}
+.title{
+  display:inline;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:13px;
+  font-weight:bold;
+  color:#0000ee;
+  text-decoration:underline;
+}
+
+.subtitle{
+  display:inline;
+  margin-left:6px;
+  font-size:11px;
+  color:#555;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+.statusLight{
+  width:7px;
+  height:7px;
+  display:inline-block;
+  border-radius:50%;
+  background:#169b28;
+  border:1px solid #0b5c16;
+  transform:translateY(-1px);
+}
+
+body.is-stopped .statusLight{
+  background:#a00;
+  border-color:#600;
+}
+
+.controlGroup{
+  display:inline-flex;
+  align-items:center;
+  gap:0;
+  height:auto;
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  flex:0 0 auto;
+}
+
+.controlGroup:before{
+  content:"|";
+  color:#777;
+  margin:0 7px 0 1px;
+}
+
+.controlGroup.mainActions{
+  margin-left:auto;
+}
+
+button{
+  appearance:none;
+  -webkit-appearance:none;
+  border:0;
+  background:transparent;
+  padding:0 3px;
+  margin:0;
+  height:auto;
+  min-width:0;
+  display:inline;
+  color:#0000ee;
+  font:inherit;
+  font-size:12px;
+  text-decoration:underline;
+  cursor:pointer;
+  border-radius:0;
+  box-shadow:none;
+  text-shadow:none;
+  text-transform:none;
+  letter-spacing:0;
+}
+
+button:hover{background:#ddd;}
+button:active{color:#551a8b;}
+button + button:before{
+  content:"/";
+  color:#777;
+  display:inline-block;
+  margin:0 5px 0 2px;
+  text-decoration:none;
+}
+
+button.active,
+button.running,
+button.modeOn{
+  color:#000;
+  font-weight:bold;
+  text-decoration:none;
+  cursor:default;
+}
+
+button.stopped{
+  color:#777;
+  text-decoration:none;
+}
+
+.keyHint{
+  display:none;
+}
+
+@media (max-width:620px){
+  :root{--chromeH:55px;}
+  .ui{
+    height:var(--chromeH);
+    flex-wrap:wrap;
+    align-content:flex-start;
+    gap:5px;
+    padding:6px 7px;
+    line-height:1.2;
+  }
+  .controlGroup.mainActions{margin-left:0;}
+  .brand{width:100%;}
+  .subtitle{font-size:10px;}
+}
+
+:fullscreen .ui{display:none;}
+:fullscreen .grid{top:0;}
+
+/* GRID */
+
+.grid{
+  position:fixed;
+  top:var(--chromeH);
+  left:0;right:0;bottom:0;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(var(--tileSize),1fr));
+  gap:1px;
+  overflow:hidden;
+}
+
+.grid.avatar{--ratio:1/1;}
+.grid.avatar .tile{border-radius:50%;}
+
+.tile{
+  aspect-ratio:var(--ratio);
+  background-size:cover;
+  background-position:center;
+  background-color:#111;
+  opacity:0;
+  transition:.3s;
+  cursor:pointer;
+  position:relative;
+}
+
+.tile.show{opacity:1;}
+.placeholder{background:#1a1a1a!important;}
+
+.info{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
+  font-size:10px;
+  padding:5px;
+  display:flex;
+  align-items:flex-end;
+  opacity:0;
+}
+
+.tile:hover .info{opacity:1;}
+@media (hover:none){.info{opacity:.6;}}
+</style>
+</head>
+<body>
+<div class="ui">
+  <div class="brand">
+    <span class="statusLight" aria-hidden="true"></span>
+    <div class="titleWrap"><div class="title">wikitiki</div><div class="subtitle">wikipedia image stream</div></div>
+  </div>
+
+  <div class="controlGroup ratioGroup" aria-label="Image format">
+    <button class="ratioBtn active" data-ratio="square">grid</button>
+    <button class="ratioBtn" data-ratio="avatar">circle</button>
+  </div>
+
+  <div class="controlGroup utilityGroup" aria-label="View tools">
+    <button id="downloadBtn" onclick="toggleDownloadMode()">save</button>
+    <button onclick="toggleFullscreen()">full</button>
+  </div>
+
+  <div class="controlGroup mainActions" aria-label="Stream controls">
+    <button id="startBtn" onclick="start()">start</button>
+    <button class="stopped" id="stopBtn" onclick="stop()">stop</button>
+  </div>
+</div>
+<div class="grid" id="grid"></div>
+<script>
+const grid=document.getElementById("grid");
+let source=null;
+let currentMode="square";
+
+const startBtn=document.getElementById("startBtn");
+const stopBtn=document.getElementById("stopBtn");
+const downloadBtn=document.getElementById("downloadBtn");
+
+function toggleFullscreen(){
+ if(!document.fullscreenElement){
+  document.documentElement.requestFullscreen();
+ }else{
+  document.exitFullscreen();
+ }
+}
+
+document.querySelectorAll(".ratioBtn").forEach(btn=>{
+ btn.onclick=()=>{
+  document.querySelectorAll(".ratioBtn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  currentMode=btn.dataset.ratio;
+  grid.className="grid "+(currentMode==="square"?"":currentMode);
+  ensurePlaceholders();
+ };
+});
+
+function getRatio(){
+ if(currentMode==="avatar") return 1;
+ const val=getComputedStyle(grid).getPropertyValue("--ratio").trim();
+ const [w,h]=val.split("/").map(Number);
+ return w/h;
+}
+
+function clean(n){return n.replace(/[\\/:*?"<>|]/g,"_");}
+
+function cropDownload(url,title){
+ const img=new Image();
+ img.crossOrigin="anonymous";
+ img.src=url;
+
+ img.onload=()=>{
+  const r=getRatio();
+  let sw=img.width,sh=img.height;
+  let cw=sw,ch=cw/r;
+  if(ch>sh){ch=sh;cw=ch*r;}
+  const sx=(sw-cw)/2;
+  const sy=(sh-ch)/2;
+
+  const size=1024;
+  let outW=size;
+  let outH=size/r;
+
+  const c=document.createElement("canvas");
+  c.width=outW;c.height=outH;
+  const ctx=c.getContext("2d");
+
+  if(currentMode==="avatar"){
+   ctx.beginPath();
+   ctx.arc(outW/2,outH/2,outW/2,0,Math.PI*2);
+   ctx.clip();
+  }
+
+  ctx.drawImage(img,sx,sy,cw,ch,0,0,outW,outH);
+
+  const a=document.createElement("a");
+  a.download=clean(title)+".jpg";
+  a.href=c.toDataURL("image/jpeg",0.92);
+  a.click();
+ };
+}
+
+function start(){
+ if(source) return;
+ source=new EventSource("https://stream.wikimedia.org/v2/stream/recentchange");
+ source.onmessage=e=>{
+  const d=JSON.parse(e.data);
+  if(d.type==="edit" && d.namespace===0) addTile(d);
+ };
+ document.body.classList.remove("is-stopped");
+ startBtn.classList.add("running");
+ stopBtn.classList.remove("stopped");
+}
+
+function stop(){
+ if(source){source.close();source=null;}
+ document.body.classList.add("is-stopped");
+ startBtn.classList.remove("running");
+ stopBtn.classList.add("stopped");
+}
+
+function ensurePlaceholders(){
+ const tileW=150;
+ const ratio=getRatio();
+ const tileH=tileW/ratio;
+ const gridHeight=grid.clientHeight||(window.innerHeight-parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--chromeH")) || 58);
+
+ const cols=Math.ceil(window.innerWidth/tileW);
+ const rows=Math.ceil(gridHeight/tileH);
+ const needed=cols*rows;
+
+ const real=[...grid.children].filter(t=>!t.classList.contains("placeholder"));
+ const placeholders=[...grid.children].filter(t=>t.classList.contains("placeholder"));
+
+ const totalNeeded=Math.max(0,needed-real.length);
+
+ if(placeholders.length<totalNeeded){
+  for(let i=0;i<totalNeeded-placeholders.length;i++){
+   const t=document.createElement("div");
+   t.className="tile show placeholder";
+   grid.appendChild(t);
+  }
+ }
+
+ if(placeholders.length>totalNeeded){
+  let remove=placeholders.length-totalNeeded;
+  placeholders.reverse().forEach(p=>{
+   if(remove>0){p.remove();remove--;}
+  });
+ }
+}
+
+window.addEventListener("resize",ensurePlaceholders);
+
+async function addTile(edit){
+ const title=edit.title;
+ const lang=edit.wiki.replace("wiki","");
+ const url=`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+
+ try{
+  const r=await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+  const d=await r.json();
+  if(!d.thumbnail) return;
+
+  const thumb=d.thumbnail.source;
+  const full=d.originalimage?.source||thumb;
+
+  const img=new Image();
+  img.src=thumb;
+
+  img.onload=()=>{
+   const tile=document.createElement("div");
+   tile.className="tile";
+   tile.style.backgroundImage=`url(${thumb})`;
+
+   tile.onclick=(e)=>{
+    if(e.altKey){
+     e.preventDefault();
+     cropDownload(full,title);
+    }else{
+     window.open(url,"_blank");
+    }
+   };
+
+   tile.innerHTML=`<div class="info">${title}</div>`;
+   grid.prepend(tile);
+   requestAnimationFrame(()=>tile.classList.add("show"));
+
+   const ph=[...grid.children].find(t=>t.classList.contains("placeholder"));
+   if(ph) ph.remove();
+   ensurePlaceholders();
+  };
+
+ }catch{}
+}
+
+ensurePlaceholders();
+start();
+
+
+// ===== KEYBOARD MODES =====
+let downloadMode = false;
+function toggleDownloadMode(){
+  downloadMode = !downloadMode;
+  if(downloadBtn) downloadBtn.classList.toggle("modeOn", downloadMode);
+}
+
+// SPACE = start/stop
+// F = fullscreen
+// R = cycle image formats
+// D = toggle download mode
+document.addEventListener("keydown", (e) => {
+  if (["INPUT","TEXTAREA"].includes(e.target.tagName)) return;
+
+  // SPACE
+  if (e.code === "Space") {
+    e.preventDefault();
+    if (source) stop(); else start();
+  }
+
+  // F = fullscreen
+  if (e.code === "KeyF") {
+    toggleFullscreen();
+  }
+
+  // R = cycle ratio
+  if (e.code === "KeyR") {
+    const btns = [...document.querySelectorAll(".ratioBtn")];
+    let idx = btns.findIndex(b=>b.classList.contains("active"));
+    idx = (idx+1) % btns.length;
+    btns[idx].click();
+  }
+
+  // D = download mode toggle
+  if (e.code === "KeyD") {
+    toggleDownloadMode();
+  }
+});
+
+// patch tile click to respect downloadMode
+const origAddTile = addTile;
+addTile = async function(edit){
+  const beforeCount = grid.children.length;
+  await origAddTile(edit);
+
+  const tile = grid.firstChild;
+  if (!tile || !tile.classList.contains("tile")) return;
+
+  const oldClick = tile.onclick;
+  tile.onclick = (e)=>{
+    if (downloadMode){
+      e.preventDefault();
+      const title = tile.querySelector(".info")?.innerText || "image";
+      const bg = tile.style.backgroundImage.slice(5,-2);
+      cropDownload(bg,title);
+    } else {
+      oldClick(e);
+    }
+  };
+};
+</script>
+</body>
+</html>
