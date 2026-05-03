@@ -320,7 +320,7 @@ function cropDownload(url,title){
 
 function start(){
  if(source) return;
- source=new EventSource("https://stream.wikimedia.org/v2/stream/wikitiki");
+ source=new EventSource("https://stream.wikimedia.org/v2/stream/recentchange");
  source.onmessage=e=>{
   const d=JSON.parse(e.data);
   if(d.type==="edit" && d.namespace===0) addTile(d);
